@@ -8,7 +8,7 @@
 
 4. Libraries like matplotlib/seaborn have a lot of edge cases (column ordering, pivot behavior, annotation formatting) and LLMs in general tend to hallucinate working code that breaks on the specific data. The advantage here was iterating directly on your actual files and verifying outputs rather than generating generic code.
 
- ##  Note: Below is just an example ofthe data without revealing any real data (cant risk any sort of free data exposure serious or not serious)  
+ ##  Note: Below is just an example ofthe data without revealing any real data 
 
 
 <img width="2533" height="1472" alt="image" src="https://github.com/user-attachments/assets/65c80106-2160-4620-8e23-04160d5dc9ce" />
