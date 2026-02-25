@@ -8,7 +8,10 @@
 
 4. Libraries like matplotlib/seaborn have a lot of edge cases (column ordering, pivot behavior, annotation formatting) and LLMs in general tend to hallucinate working code that breaks on the specific data. The advantage here was iterating directly on your actual files and verifying outputs rather than generating generic code.
 
+<img width="2533" height="1472" alt="image" src="https://github.com/user-attachments/assets/65c80106-2160-4620-8e23-04160d5dc9ce" />
+<img width="2461" height="1474" alt="image" src="https://github.com/user-attachments/assets/3d4bb252-b972-4b3b-8ae0-2082cf05a52e" />
+<img width="2469" height="1476" alt="image" src="https://github.com/user-attachments/assets/add78eb1-4ed5-4db1-a90d-1a208a67b86e" />
 
-<img width="1470" height="956" alt="Screenshot 2026-02-24 at 10 45 53 PM" src="https://github.com/user-attachments/assets/07b4e60e-d346-46fe-8a30-1225027dea53" />
-<img width="1470" height="956" alt="Screenshot 2026-02-24 at 10 45 55 PM" src="https://github.com/user-attachments/assets/e8a88505-dede-4bbc-b036-9145c8b593ca" />
-<img width="1470" height="956" alt="Screenshot 2026-02-24 at 10 45 59 PM" src="https://github.com/user-attachments/assets/68f225ac-57c4-4cf2-a89f-ad6ad296a84c" />
+Note: Below is just an example ofthe data without revealing any real data (cant risk any sort of free data exposure serious or not serious)  
+<img width="1470" height="956" alt="Screenshot 2026-02-24 at 11 00 33 PM" src="https://github.com/user-attachments/assets/f6099ce2-aac2-435a-ad9d-ee45fccfdb4a" />
+
