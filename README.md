@@ -1,6 +1,6 @@
 ## Whats so different about my project???
 
-1. The data format was unusual — The Excel sheets uses a calendar-style layout (days as columns, times as rows, spread across weekly blocks) rather than a standard table. Most tools expect clean long-form data. Getting a parser to reliably read that specific Stevens dining format took careful inspection of the actual file structure.
+1. The data format was unusual — The Excel sheets uses a calendar-style layout (days as columns, times as rows, spread across weekly blocks) rather than a standard table. Most tools expect clean long-form data. Getting a parser to reliably read that specific Stevens dining format took careful inspection of the actual file structure. Or i would change it to long form which took plenty of time and mental work honestly so this was great
 
 2. The +1 weekday bug — every single venue had the Weekday column shifted one day ahead of the actual calendar date. That's the kind of subtle data quirk that's easy to miss and causes wrong labels silently without throwing any errors. We caught it by cross-checking against the source images every time.
 
