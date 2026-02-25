@@ -1,4 +1,4 @@
-## Whats so different about my project???
+## Whats so different about this?????
 
 1. The data format was unusual — The Excel sheets uses a calendar-style layout (days as columns, times as rows, spread across weekly blocks) rather than a standard table. Most tools expect clean long-form data. Getting a parser to reliably read that specific Stevens dining format took careful inspection of the actual file structure. Or i would change it to long form which took plenty of time and mental work honestly so this was great
 
