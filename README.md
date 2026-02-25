@@ -15,7 +15,7 @@
 3. One person (you) knows how this all works. If it needs to scale to a whole dining team it needs documentation
 
 ### What makes it genuinely useful:
-1. Dining transaction data in heatmap form is actually meaningful as you can instantly see peak hours, slow days, snow day impact, which venues are understaffed or overstaffed at certain times. That's actionable for scheduling, staffing, and inventory decisions... 
+1. You can instantly see peak hours, slow days, snow day impact, which venues are understaffed or overstaffed at certain times. That's actionable for scheduling, staffing, and inventory decisions... 
 2. The web app means anyone at Stevens dining can use it without touching Python or Excel formulas — just upload and go (you're welcome to the next intern who can do this easily)
 3. The data verification was rigorous. Every total matched. That matters if someone is making decisions based on it
 4. Instant visual pattern recognition — someone in a meeting can look at the heatmap and in 5 seconds say "6PM Tuesday is always our peak, we need more staff there"
