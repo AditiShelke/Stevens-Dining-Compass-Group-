@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Stevens Dining · Heatmap Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#f8f7f4; --surface:#ffffff; --surface2:#f2f1ee;
+  --border:#e0ddd8; --accent:#ff6b35; --accent2:#ffb347;
+  --text:#1a1a1a; --muted:#8a8a8a;
+  --success:#16a34a; --error:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,107,53,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,53,.06) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.container{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:0 32px}
+
+/* HEADER */
+header{padding:36px 0 28px;border-bottom:1px solid var(--border);margin-bottom:36px}
+.header-inner{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.logo-block{display:flex;align-items:center;gap:16px}
+.logo-icon{width:46px;height:46px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
+h1 span{color:var(--accent)}
+.subtitle{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.05em}
+.badge{font-family:'DM Mono',monospace;font-size:11px;background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.3);color:var(--accent);padding:6px 14px;border-radius:20px}
+
+/* UPLOAD */
+.section-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:44px 32px;text-align:center;cursor:pointer;transition:all .25s;background:var(--surface);position:relative;overflow:hidden}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(255,107,53,.05)}
+.upload-icon{font-size:38px;margin-bottom:14px;display:block}
+.upload-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.upload-hint{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+.upload-btn{display:inline-block;margin-top:18px;background:var(--accent);color:#fff;padding:10px 28px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;border:none;transition:all .2s}
+.upload-btn:hover{background:var(--accent2);transform:translateY(-1px)}
+#file-input{display:none}
+.status-bar{display:none;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-top:14px;font-family:'DM Mono',monospace;font-size:13px}
+.status-bar.show{display:flex}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.status-dot.done{background:var(--success);animation:none}
+.status-dot.error{background:var(--error);animation:none}
+
+/* TABS */
+.tabs-section{display:none}
+.tabs-section.show{display:block}
+.tabs-bar{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border-radius:12px;padding:6px;border:1px solid var(--border);flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(255,107,53,.35)}
+.tab-btn:hover:not(.active){color:var(--text);background:var(--surface2)}
+
+/* PANEL */
+.heatmap-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.panel-title{font-size:17px;font-weight:700}
+.panel-title span{color:var(--accent)}
+.download-btn{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+.download-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px}
+.stat-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.stat-value{font-size:20px;font-weight:800;color:var(--accent)}
+.stat-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px}
+
+.heatmap-scroll{overflow-x:auto;border-radius:10px}
+canvas{display:block;border-radius:10px}
+
+footer{padding:28px 0;border-top:1px solid var(--border);text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <div class="logo-icon">🍽️</div>
+        <div>
+          <h1>Stevens <span>Dining</span></h1>
+          <div class="subtitle">TRANSACTION HEATMAP STUDIO</div>
+        </div>
+      </div>
+      <div class="badge">Upload Excel → View Heatmaps → Download PNG</div>
+    </div>
+  </header>
+
+  <div style="margin-bottom:32px">
+    <div class="section-label">01 · Upload Workbook</div>
+    <div class="upload-zone" id="upload-zone">
+      <span class="upload-icon">📊</span>
+      <div class="upload-title">Drop your Excel workbook here</div>
+      <div class="upload-hint">Multi-sheet · One sheet per dining location · Any month</div>
+      <button class="upload-btn" onclick="document.getElementById('file-input').click()">Choose File</button>
+      <input type="file" id="file-input" accept=".xlsx,.xls"/>
+    </div>
+    <div class="status-bar" id="status-bar">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Processing...</span>
+    </div>
+  </div>
+
+  <div class="tabs-section" id="tabs-section">
+    <div class="section-label">02 · Explore Locations</div>
+    <div class="tabs-bar" id="tabs-bar"></div>
+    <div id="location-panels"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">Stevens Institute of Technology · Dining Analytics · Internal Use</div>
+</footer>
+
+<script>
+// ─── HEAT COLOR (YlOrRd) ───────────────────────────────────────────────────
+function heatColor(t) {
+  t = Math.max(0, Math.min(1, t));
+  const stops = [
+    [255,255,204],[255,237,160],[254,217,118],[254,178,76],
+    [253,141,60],[252,78,42],[227,26,28],[177,0,38]
+  ];
+  const idx = t * (stops.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx), f = idx - lo;
+  if (lo === hi) return `rgb(${stops[lo].join(',')})`;
+  return `rgb(${stops[lo].map((v,i) => Math.round(v + (stops[hi][i]-v)*f)).join(',')})`;
+}
+
+// ─── DRAG & DROP ───────────────────────────────────────────────────────────
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
+
+// ─── STATUS ────────────────────────────────────────────────────────────────
+function setStatus(msg, type='loading') {
+  const bar = document.getElementById('status-bar');
+  const dot = document.getElementById('status-dot');
+  bar.classList.add('show');
+  dot.className = 'status-dot' + (type==='done'?' done':type==='error'?' error':'');
+  document.getElementById('status-text').textContent = msg;
+}
+
+// ─── FILE HANDLER ──────────────────────────────────────────────────────────
+function handleFile(file) {
+  if (!file) return;
+  setStatus(`Reading "${file.name}"...`);
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type:'array', raw:true });
+      const locations = {};
+      wb.SheetNames.forEach(name => {
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[name], { header:1, defval:null, raw:true });
+        const data = parseScheduleSheet(raw);
+        if (data.length > 0) locations[name] = data;
+      });
+      if (!Object.keys(locations).length) {
+        setStatus('No transaction data found in this file.', 'error'); return;
+      }
+      setStatus(`Loaded ${Object.keys(locations).length} location(s) — ${Object.values(locations).reduce((s,d)=>s+d.length,0)} records`, 'done');
+      renderAll(locations);
+    } catch(err) {
+      setStatus('Error: ' + err.message, 'error');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── PARSE SCHEDULE SHEET ─────────────────────────────────────────────────
+// Handles the Stevens dining format:
+// Row with "WEEKDAY M/D" headers; time+value pairs in next rows; blank separator row
+function parseScheduleSheet(rows) {
+  const results = [];
+  const dateRe = /\b(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)\s+(\d{1,2}\/\d{1,2})\b/i;
+  const timeRe = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i;
+
+  // Find all week-block header rows: rows where ≥1 cell matches "WEEKDAY M/D"
+  const weekBlocks = []; // [{headerRow, dayCols: {col: {weekday,dateStr}}}]
+
+  for (let r = 0; r < rows.length; r++) {
+    const dayCols = {};
+    for (let c = 0; c < (rows[r] || []).length; c++) {
+      const cell = rows[r][c] != null ? String(rows[r][c]).trim() : '';
+      const m = dateRe.exec(cell);
+      if (m) dayCols[c] = { weekday: m[1], dateStr: m[2] };
+    }
+    if (Object.keys(dayCols).length > 0) weekBlocks.push({ headerRow: r, dayCols });
+  }
+
+  // For each week block, find data rows between this header and the next
+  for (let bi = 0; bi < weekBlocks.length; bi++) {
+    const { headerRow, dayCols } = weekBlocks[bi];
+    const endRow = bi + 1 < weekBlocks.length ? weekBlocks[bi+1].headerRow : rows.length;
+
+    for (const [colStr, { weekday, dateStr }] of Object.entries(dayCols)) {
+      const col = parseInt(colStr);
+
+      // Parse date — try current year context; default to 2025
+      let date;
+      try {
+        const parts = dateStr.split('/');
+        const mo = parseInt(parts[0]), dy = parseInt(parts[1]);
+        // Guess year: if month >= current month it's likely same year, else next year
+        // We'll just use 2025 as default since data is Jan 2025
+        date = new Date(2025, mo - 1, dy);
+        if (isNaN(date.getTime())) continue;
+      } catch { continue; }
+
+      // Scan rows below header for time+value pairs
+      for (let r = headerRow + 1; r < endRow; r++) {
+        const row = rows[r] || [];
+        const timeCell = row[col] != null ? String(row[col]).trim() : '';
+        const valCell  = row[col + 1];
+
+        const tm = timeRe.exec(timeCell);
+        if (!tm) continue;
+
+        // Parse value
+        let txn = parseFloat(valCell);
+        if (isNaN(txn) || txn <= 0) continue;
+
+        // Normalize time to consistent format e.g. "11:00AM"
+        const h = tm[1], min = tm[2], period = tm[3].toUpperCase();
+        const timeLabel = `${h}:${min}${period}`;
+
+        results.push({ weekday, date, time: timeLabel, transactions: Math.round(txn) });
+      }
+    }
+  }
+  return results;
+}
+
+// ─── SORT TIMES ───────────────────────────────────────────────────────────
+function timeToMin(t) {
+  const m = /(\d+):(\d+)(AM|PM)/i.exec(t);
+  if (!m) return 0;
+  let h = parseInt(m[1]), min = parseInt(m[2]);
+  const p = m[3].toUpperCase();
+  if (p === 'PM' && h !== 12) h += 12;
+  if (p === 'AM' && h === 12) h = 0;
+  return h * 60 + min;
+}
+function sortTimes(arr) { return [...new Set(arr)].sort((a,b) => timeToMin(a) - timeToMin(b)); }
+
+// ─── DAY LABEL ────────────────────────────────────────────────────────────
+function dayLabel(d) {
+  const wd = String(d.weekday).slice(0,3);
+  const mo = String(d.date.getMonth()+1).padStart(2,'0');
+  const dy = String(d.date.getDate()).padStart(2,'0');
+  return `${wd} ${mo}/${dy}`;
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────
+const allCanvases = {};
+
+function renderAll(locations) {
+  const tabsBar = document.getElementById('tabs-bar');
+  const panels  = document.getElementById('location-panels');
+  tabsBar.innerHTML = '';
+  panels.innerHTML  = '';
+
+  const names = Object.keys(locations);
+  names.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i===0?' active':'');
+    btn.textContent = name;
+    btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach((b,j) => b.classList.toggle('active', j===i));
+      document.querySelectorAll('[id^="panel-"]').forEach((p,j) => p.style.display = j===i?'block':'none');
+    };
+    tabsBar.appendChild(btn);
+
+    const panel = document.createElement('div');
+    panel.id = `panel-${i}`;
+    panel.style.display = i===0 ? 'block' : 'none';
+    panel.innerHTML = buildPanelHTML(name, i);
+    panels.appendChild(panel);
+
+    setTimeout(() => drawHeatmap(name, locations[name], i), 60);
+  });
+
+  document.getElementById('tabs-section').classList.add('show');
+}
+
+function buildPanelHTML(name, i) {
+  return `
+  <div class="heatmap-panel">
+    <div class="panel-header">
+      <div class="panel-title"><span>${name}</span></div>
+      <button class="download-btn" onclick="downloadPNG(${i},'${name.replace(/'/g,"\\'")}')">⬇ Download PNG</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value" id="s-total-${i}">—</div></div>
+      <div class="stat-card"><div class="stat-label">Open Days</div><div class="stat-value" id="s-days-${i}">—</div></div>
+      <div class="stat-card"><div class="stat-label">Peak Day</div><div class="stat-value" id="s-pdv-${i}">—</div><div class="stat-sub" id="s-pdk-${i}">—</div></div>
+      <div class="stat-card"><div class="stat-label">Peak Hour</div><div class="stat-value" id="s-phv-${i}">—</div><div class="stat-sub" id="s-phk-${i}">—</div></div>
+      <div class="stat-card"><div class="stat-label">Daily Average</div><div class="stat-value" id="s-avg-${i}">—</div></div>
+    </div>
+    <div class="heatmap-scroll"><canvas id="canvas-${i}"></canvas></div>
+  </div>`;
+}
+
+// ─── DRAW HEATMAP ─────────────────────────────────────────────────────────
+function drawHeatmap(name, data, idx) {
+  // Build pivot
+  const dayMap = new Map(); // dayLabel → {date, times:{time:total}}
+  data.forEach(d => {
+    const lbl = dayLabel(d);
+    if (!dayMap.has(lbl)) dayMap.set(lbl, { date: d.date, times: {} });
+    const m = dayMap.get(lbl).times;
+    m[d.time] = (m[d.time] || 0) + d.transactions;
+  });
+
+  const timeOrder = sortTimes(data.map(d => d.time));
+  const dayOrder  = [...dayMap.entries()]
+    .sort((a,b) => a[1].date - b[1].date)
+    .map(e => e[0]);
+
+  if (!timeOrder.length || !dayOrder.length) return;
+
+  const matrix = timeOrder.map(t => dayOrder.map(d => dayMap.get(d).times[t] || 0));
+  const allVals = matrix.flat().filter(v => v > 0);
+  const maxVal  = Math.max(...allVals, 1);
+  const total   = allVals.reduce((a,b) => a+b, 0);
+
+  // Daily / hourly totals
+  const dailyTotals  = dayOrder.map((_,ci) => matrix.reduce((s,row) => s+row[ci], 0));
+  const hourlyTotals = timeOrder.map((_,ri) => matrix[ri].reduce((s,v) => s+v, 0));
+  const peakDayIdx   = dailyTotals.indexOf(Math.max(...dailyTotals));
+  const peakHourIdx  = hourlyTotals.indexOf(Math.max(...hourlyTotals));
+
+  // Stats
+  document.getElementById(`s-total-${idx}`).textContent = total.toLocaleString();
+  document.getElementById(`s-days-${idx}`).textContent  = dayOrder.length;
+  document.getElementById(`s-pdv-${idx}`).textContent   = Math.max(...dailyTotals).toLocaleString();
+  document.getElementById(`s-pdk-${idx}`).textContent   = dayOrder[peakDayIdx] || '—';
+  document.getElementById(`s-phv-${idx}`).textContent   = Math.max(...hourlyTotals).toLocaleString();
+  document.getElementById(`s-phk-${idx}`).textContent   = timeOrder[peakHourIdx] || '—';
+  document.getElementById(`s-avg-${idx}`).textContent   = Math.round(total / dayOrder.length).toLocaleString();
+
+  // ── Canvas layout ──
+  // Cell size scales with number of days (wider = more days)
+  const CELL_H    = 46;
+  const CELL_W    = Math.max(58, Math.min(80, Math.floor(1100 / dayOrder.length)));
+  const LEFT_PAD  = 88;
+  const TOP_PAD   = 70;
+  const BOT_PAD   = 60;
+  const RIGHT_PAD = 90;
+
+  const W = LEFT_PAD + dayOrder.length * CELL_W + RIGHT_PAD;
+  const H = TOP_PAD + timeOrder.length * CELL_H + BOT_PAD;
+
+  const canvas = document.getElementById(`canvas-${idx}`);
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  allCanvases[idx] = { canvas, name };
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Title
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = 'bold 14px "Syne", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${name.toUpperCase()} — Transactions Heatmap (Open Days Only)`, W/2, 26);
+
+  // Subtitle
+  ctx.fillStyle = '#888888';
+  ctx.font = '10px "DM Mono", monospace';
+  ctx.fillText(`${dayOrder.length} open days · ${total.toLocaleString()} total transactions · peak ${maxVal} at ${timeOrder[peakHourIdx]} on ${dayOrder[peakDayIdx]}`, W/2, 44);
+
+  // ── Cells ──
+  matrix.forEach((row, ri) => {
+    row.forEach((val, ci) => {
+      const x = LEFT_PAD + ci * CELL_W;
+      const y = TOP_PAD  + ri * CELL_H;
+      const t = val / maxVal;
+
+      // Cell background
+      ctx.fillStyle = val > 0 ? heatColor(t) : '#f5f5f5';
+      ctx.beginPath();
+      ctx.roundRect(x+1, y+1, CELL_W-2, CELL_H-2, 3);
+      ctx.fill();
+
+      // Value text
+      if (val > 0) {
+        ctx.fillStyle = t > 0.52 ? 'rgba(255,255,255,0.93)' : '#1a1a1a';
+        ctx.font = `bold ${CELL_W < 62 ? 10 : 11}px "DM Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(val), x + CELL_W/2, y + CELL_H/2);
+      }
+    });
+  });
+
+  // ── Y-axis (time labels) ──
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.font = '11px "DM Mono", monospace';
+  timeOrder.forEach((t, ri) => {
+    ctx.fillStyle = '#555555';
+    ctx.fillText(t, LEFT_PAD - 10, TOP_PAD + ri * CELL_H + CELL_H/2);
+  });
+
+  // ── X-axis (day labels) ──
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.font = '10px "DM Mono", monospace';
+  dayOrder.forEach((d, ci) => {
+    const x = LEFT_PAD + ci * CELL_W + CELL_W/2;
+    const y = TOP_PAD + timeOrder.length * CELL_H + 10;
+    ctx.fillStyle = '#555555';
+
+    // Split "Mon 01/20" into two lines
+    const parts = d.split(' ');
+    ctx.fillText(parts[0] || d, x, y);
+    if (parts[1]) ctx.fillText(parts[1], x, y + 14);
+  });
+
+  // ── Colorbar ──
+  const cbX = W - RIGHT_PAD + 18;
+  const cbY = TOP_PAD;
+  const cbW = 12;
+  const cbH = timeOrder.length * CELL_H;
+  for (let i = 0; i < cbH; i++) {
+    ctx.fillStyle = heatColor(1 - i/cbH);
+    ctx.fillRect(cbX, cbY + i, cbW, 1);
+  }
+  ctx.strokeStyle = '#cccccc'; ctx.lineWidth = 1;
+  ctx.strokeRect(cbX, cbY, cbW, cbH);
+
+  ctx.fillStyle = '#555555';
+  ctx.font = '10px "DM Mono", monospace';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(maxVal, cbX + cbW + 4, cbY);
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('0', cbX + cbW + 4, cbY + cbH);
+
+  ctx.save();
+  ctx.translate(cbX + cbW + 20, cbY + cbH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillStyle = '#888888'; ctx.font = '10px "DM Mono", monospace';
+  ctx.fillText('Transactions', 0, 2);
+  ctx.restore();
+
+  // ── Subtle grid lines ──
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 1;
+  timeOrder.forEach((_, ri) => {
+    const y = TOP_PAD + ri * CELL_H;
+    ctx.beginPath(); ctx.moveTo(LEFT_PAD, y); ctx.lineTo(LEFT_PAD + dayOrder.length*CELL_W, y); ctx.stroke();
+  });
+  dayOrder.forEach((_, ci) => {
+    const x = LEFT_PAD + ci * CELL_W;
+    ctx.beginPath(); ctx.moveTo(x, TOP_PAD); ctx.lineTo(x, TOP_PAD + timeOrder.length*CELL_H); ctx.stroke();
+  });
+}
+
+// ─── DOWNLOAD ─────────────────────────────────────────────────────────────
+function downloadPNG(idx, name) {
+  const info = allCanvases[idx];
+  if (!info) return;
+  const link = document.createElement('a');
+  link.download = `heatmap_${name.replace(/[\s'&]+/g,'_').toLowerCase()}.png`;
+  link.href = info.canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
