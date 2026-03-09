@@ -43,9 +43,3 @@ In your n8n HTTP Request node:
 Pierce Dining Hall, Zaro's, CREATE, Cannon, Yella's, TU Taco, Pom & Honey, Piccola Italia, Late Night
 
 Any unrecognized sheet name uses default time range (7AM–9PM).
-
-## Notes
-- Uses the exact same parser as the GitHub Pages website
-- Weekday labels use the Weekday column from the data (not strftime) to avoid the +1 day bug
-- Closed days (zero transactions) are filtered out automatically
-- Free Render tier may spin down after 15 min of inactivity — first request takes ~30s to wake up
