@@ -2,14 +2,12 @@
 
 Flask API that accepts a multi-sheet Excel workbook and returns a ZIP of heatmap PNGs — one per dining venue sheet.
 
-## Deploy to Render.com (free, 5 minutes)
+## Deployed to Render.com 
 
-1. Push this folder to a GitHub repo (e.g. `dining-heatmap-api`)
-2. Go to [render.com](https://render.com) → New → Web Service
-3. Connect your GitHub repo
+1. Pushed the folder to a GitHub repo 
+2. [render.com](https://render.com) → New → Web Service
+3. Connected my GitHub repo
 4. Render reads `render.yaml` automatically — just click **Deploy**
-5. Wait ~3 minutes for build
-6. Your API is live at: `https://stevens-dining-heatmap-api.onrender.com`
 
 ## API Endpoints
 
