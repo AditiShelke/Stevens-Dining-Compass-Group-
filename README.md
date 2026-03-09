@@ -1,3 +1,6 @@
+
+This is just to make my job easier in plotting heat maps and working with transaction data for easy analysis and interpretation. And to save time and be productive and quick working on QBR  (I had very less time to do three months worth of data)
+
 # Stevens Dining Heatmap API
 
 Flask API that accepts a multi-sheet Excel workbook and returns a ZIP of heatmap PNGs — one per dining venue sheet.
