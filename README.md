@@ -1,5 +1,5 @@
 
-This is just to make my job easier in plotting heat maps and working with transaction data for easy analysis and interpretation. And to save time and be productive and quick working on QBR  (I had very less time to do three months worth of data)
+AI-powered dining analytics toolkit — heatmap generation, SKU-level demand tracking, and transaction data analysis for multi-location food service operations. Built to automate QBR reporting and replace manual workflows at Compass Group USA.
 
 # Stevens Dining Heatmap API
 
